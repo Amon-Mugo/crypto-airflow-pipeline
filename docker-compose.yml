@@ -1,44 +1,17 @@
-version: "3.8"
-
 services:
-  postgres:
-    image: postgres:13
-    container_name: airflow-postgres
-    environment:
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
-      POSTGRES_DB: airflow
-    volumes:
-      - postgres-db-volume:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "airflow"]
-      interval: 5s
-      retries: 5
-    restart: always
-
   airflow-webserver:
     image: apache/airflow:2.9.1
     container_name: airflow-webserver
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
-    depends_on:
-      postgres:
-        condition: service_healthy
+    network_mode: host
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:1337x@localhost/data_engineering_test
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
-      - /home/amon/data_engineering:/home/amon/data_engineering
-      - /home/amon/anaconda3:/home/amon/anaconda3
-      - /home/amon/.dbt:/home/amon/.dbt
-    ports:
-      - "8080:8080"
+      - /home/amonmugo/PROJECTS/data_engineering:/home/amonmugo/PROJECTS/data_engineering
+      - /home/amonmugo/.dbt:/home/amonmugo/.dbt
     command: >
       bash -c "
       airflow db migrate &&
@@ -56,25 +29,14 @@ services:
   airflow-scheduler:
     image: apache/airflow:2.9.1
     container_name: airflow-scheduler
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
-    depends_on:
-      postgres:
-        condition: service_healthy
+    network_mode: host
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:1337x@localhost/data_engineering_test
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
-      - /home/amon/data_engineering:/home/amon/data_engineering
-      - /home/amon/anaconda3:/home/amon/anaconda3
-      - /home/amon/.dbt:/home/amon/.dbt
+      - /home/amonmugo/PROJECTS/data_engineering:/home/amonmugo/PROJECTS/data_engineering
+      - /home/amonmugo/.dbt:/home/amonmugo/.dbt
     command: airflow scheduler
     restart: always
-
-volumes:
-  postgres-db-volume:
